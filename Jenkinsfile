@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', git credentialsId: 'github-token', url: 'https://github.com/vigta257/calculator-app.git'
+                git branch: 'main', credentialsId: 'github-credentials-id', url: 'https://github.com/vigta257/calculator-app.git'
             }
         }
         stage('Build Docker Image') {
@@ -32,7 +32,7 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    docker.withRegistry(DOCKER_REGISTRY, 'docker-hub') {
+                    docker.withRegistry('https://index.docker.io/v1/', 'docker-hub') {
                         docker.image("${DOCKER_IMAGE}:latest").push()
                     }
                 }
@@ -41,7 +41,7 @@ pipeline {
         stage('Deploy to Server') {
             steps {
                 script {
-                    sshagent(['id_rsa']) {
+                    sshagent(['ssh-key-id']) {
                         sh '''
                         ssh techninja@192.168.0.149 << EOF
                         docker pull ${DOCKER_IMAGE}:latest

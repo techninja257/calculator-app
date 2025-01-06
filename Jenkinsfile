@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout Code') {
             steps {
-                git branch: 'main', credentialsId: 'github-credentials-id', url: 'https://github.com/vigta257/calculator-app.git'
+                git branch: 'main', credentialsId: 'github-token', url: 'https://github.com/vigta257/calculator-app.git'
             }
         }
         stage('Build Docker Image') {

@@ -1,20 +1,18 @@
 pipeline {
   agent any
   environment {
-    DOCKER_IMAGE = "vigta257/calculator-app" // Update this!
+    DOCKER_IMAGE = "vigta257/calculator-app"
+    DOCKER_CREDS = credentials('dockerhub-credentials')
   }
   stages {
-    stage('Test') {
-      steps {
-        sh 'npm install'
-        sh 'npm test'
-      }
-    }
+    // Build Docker Image
     stage('Build') {
       steps {
         sh "docker build -t ${DOCKER_IMAGE}:${BUILD_ID} ."
       }
     }
+
+    // Push to Docker Hub
     stage('Push') {
       steps {
         script {
@@ -29,15 +27,21 @@ pipeline {
         }
       }
     }
+
+    // Deploy to Server
     stage('Deploy') {
       steps {
-        sh "docker run -d --name calculator-app -p 3000:3000 ${DOCKER_IMAGE}:${BUILD_ID}"
+        sh """
+          docker stop calculator-app || true
+          docker rm calculator-app || true
+          docker run -d --name calculator-app -p 3000:3000 ${DOCKER_IMAGE}:${BUILD_ID}
+        """
       }
     }
   }
   post {
     always {
-      sh 'docker system prune -f' // Cleanup unused Docker artifacts
+      sh 'docker system prune -f'  // Cleanup unused Docker artifacts
     }
   }
 }

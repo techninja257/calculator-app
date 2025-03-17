@@ -31,7 +31,7 @@ pipeline {
     }
     stage('Deploy') {
       steps {
-        sh "docker run -d --name myapp -p 3000:3000 ${DOCKER_IMAGE}:${BUILD_ID}"
+        sh "docker run -d --name calculator-app -p 3000:3000 ${DOCKER_IMAGE}:${BUILD_ID}"
       }
     }
   }

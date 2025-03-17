@@ -1,50 +1,63 @@
 class Calculator {
     constructor() {
-        this.history = JSON.parse(localStorage.getItem('calcHistory')) || [];
-        this.currentExpression = '';
+        this.currentValue = '';
+        this.history = [];
+        this.sciVisible = false;
+        this.historyVisible = false;
         this.init();
     }
 
     init() {
-        this.updateHistory();
+        document.getElementById('scientificButtons').style.display = 'none';
         document.addEventListener('keydown', this.handleKeyboard.bind(this));
-        document.getElementById('result').value = '';
     }
 
-    append(value) {
+    appendValue(value) {
         if (this.validateInput(value)) {
-            this.currentExpression += value;
+            this.currentValue += value;
             this.updateDisplay();
         }
     }
 
+    appendOperation(operation) {
+        const ops = {
+            'π': Math.PI.toString(),
+            '√(': 'sqrt(',
+            '^2': '**2',
+            '^': '**'
+        };
+        
+        this.currentValue += ops[operation] || operation;
+        this.updateDisplay();
+    }
+
     validateInput(value) {
-        const lastChar = this.currentExpression.slice(-1);
+        const lastChar = this.currentValue.slice(-1);
         const operators = ['+', '-', '*', '/'];
         
-        // Prevent multiple operators
+        // Prevent invalid sequences
         if (operators.includes(value) && operators.includes(lastChar)) return false;
-        
-        // Validate decimal points
-        if (value === '.' && this.currentExpression.split(/[\+\-\*\/]/).pop().includes('.')) return false;
+        if (value === '.' && this.currentValue.split(/[\+\-\*\/]/).pop().includes('.')) return false;
         
         return true;
     }
 
-    calculate() {
+    calculateResult() {
         try {
-            const sanitized = this.currentExpression
-                .replace(/√/g, 'Math.sqrt(')
-                .replace(/π/g, Math.PI)
-                .replace(/%/g, '/100*');
+            let expression = this.currentValue
+                .replace(/sqrt\(/g, 'Math.sqrt(')
+                .replace(/\^/g, '**')
+                .replace(/π/g, Math.PI.toString());
+
+            // Security check
+            if (!/^[0-9+\-*/().π√\^ ]+$/.test(expression)) throw new Error('Invalid characters');
             
-            const result = this.safeEvaluate(sanitized);
+            const result = new Function(`return ${expression}`)();
             
-            if (result === 'Error') throw new Error();
+            if (!Number.isFinite(result)) throw new Error();
             
-            this.history.unshift(`${this.currentExpression} = ${result}`);
-            localStorage.setItem('calcHistory', JSON.stringify(this.history));
-            this.currentExpression = result.toString();
+            this.history.unshift(`${this.currentValue} = ${result}`);
+            this.currentValue = result.toString();
             this.updateDisplay();
             this.updateHistory();
         } catch {
@@ -52,68 +65,78 @@ class Calculator {
         }
     }
 
-    safeEvaluate(expr) {
-        try {
-            if (!/^[0-9+\-*/().π√% ]+$/.test(expr)) return 'Error';
-            const result = new Function(`return ${expr}`)();
-            return Number.isFinite(result) ? result : 'Error';
-        } catch {
-            return 'Error';
-        }
-    }
-
-    updateDisplay() {
-        const resultField = document.getElementById('result');
-        resultField.value = this.currentExpression;
-        resultField.classList.remove('error');
-    }
-
     showError() {
-        const resultField = document.getElementById('result');
-        resultField.classList.add('error');
-        resultField.value = 'Error';
-        setTimeout(() => this.clear(), 1500);
+        const display = document.getElementById('result');
+        display.value = 'Error';
+        display.classList.add('error');
+        setTimeout(() => {
+            this.clearScreen();
+            display.classList.remove('error');
+        }, 1500);
     }
 
-    clear() {
-        this.currentExpression = '';
+    clearScreen() {
+        this.currentValue = '';
         this.updateDisplay();
     }
 
     backspace() {
-        this.currentExpression = this.currentExpression.slice(0, -1);
+        this.currentValue = this.currentValue.slice(0, -1);
         this.updateDisplay();
     }
 
+    toggleScientific() {
+        const sciPanel = document.getElementById('scientificButtons');
+        this.sciVisible = !this.sciVisible;
+        sciPanel.style.display = this.sciVisible ? 'grid' : 'none';
+    }
+
+    toggleHistory() {
+        const historyPanel = document.getElementById('historyPanel');
+        this.historyVisible = !this.historyVisible;
+        historyPanel.style.display = this.historyVisible ? 'block' : 'none';
+    }
+
+    clearHistory() {
+        this.history = [];
+        this.updateHistory();
+    }
+
+    updateDisplay() {
+        document.getElementById('result').value = this.currentValue;
+    }
+
     updateHistory() {
-        document.getElementById('history').innerHTML = this.history
-            .slice(0, 5)
+        const historyElement = document.getElementById('history');
+        historyElement.innerHTML = this.history
             .map(entry => `<div class="history-item">${entry}</div>`)
             .join('');
     }
 
     handleKeyboard(e) {
-        const operations = {
-            'Enter': () => this.calculate(),
-            'Escape': () => this.clear(),
+        const keyMap = {
+            'Enter': () => this.calculateResult(),
+            'Escape': () => this.clearScreen(),
             'Backspace': () => this.backspace()
         };
         
-        if (e.key in operations) operations[e.key]();
-        else if (/[0-9+\-*/.%π√()]/.test(e.key)) this.append(e.key);
+        if (keyMap[e.key]) {
+            keyMap[e.key]();
+        } else if (/[0-9+\-*/.^]/.test(e.key)) {
+            this.appendValue(e.key);
+        }
     }
 }
 
 // Initialize calculator
 const calculator = new Calculator();
 
-// Window interface
-window.appendValue = (v) => calculator.append(v);
-window.clearScreen = () => calculator.clear();
-window.calculateResult = () => calculator.calculate();
+// Expose methods to window
+window.appendValue = (v) => calculator.appendValue(v);
+window.appendOperation = (op) => calculator.appendOperation(op);
+window.clearScreen = () => calculator.clearScreen();
+window.calculateResult = () => calculator.calculateResult();
 window.backspace = () => calculator.backspace();
-window.toggleTheme = () => {
-    document.documentElement.setAttribute('data-theme',
-        document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'
-    );
-};
+window.toggleScientific = () => calculator.toggleScientific();
+window.toggleHistory = () => calculator.toggleHistory();
+window.clearHistory = () => calculator.clearHistory();

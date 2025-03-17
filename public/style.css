@@ -1,55 +1,85 @@
 :root {
-    --primary-color: #007BFF;
-    --background-color: #fff;
-    --text-color: #333;
-    --button-hover: #0056b3;
-}
-
-[data-theme="dark"] {
-    --primary-color: #4da3ff;
-    --background-color: #2d2d2d;
-    --text-color: #fff;
-    --button-hover: #117a8b;
-    --calculator-shadow: 0 5px 15px rgba(255, 255, 255, 0.1);
+    --background: #2d2d2d;
+    --display-bg: #1a1a1a;
+    --button-bg: #3d3d3d;
+    --button-hover: #4d4d4d;
+    --operator-bg: #ff9500;
+    --operator-hover: #ffaa33;
+    --sci-bg: #5856d6;
+    --error-color: #ff3b30;
 }
 
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--background);
+    color: white;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
     margin: 0;
-    transition: background 0.3s ease;
 }
 
 .calculator {
-    background: var(--background-color);
-    color: var(--text-color);
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: var(--calculator-shadow, 0 5px 15px rgba(0, 0, 0, 0.2));
     width: 320px;
-    transition: all 0.3s ease;
+    padding: 20px;
+    background: var(--background);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
 }
 
-.header {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
+.display {
+    position: relative;
+    margin-bottom: 20px;
 }
 
 #result {
     width: 100%;
-    height: 60px;
-    padding: 10px;
-    font-size: 1.8em;
+    height: 80px;
+    padding: 20px;
+    font-size: 2.5em;
     text-align: right;
+    background: var(--display-bg);
     border: none;
-    background: transparent;
-    color: var(--text-color);
-    border-bottom: 2px solid #ccc;
+    border-radius: 12px;
+    color: white;
+    caret-color: transparent;
+}
+
+.history-toggle {
+    position: absolute;
+    left: 15px;
+    top: 15px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.history-toggle:hover {
+    opacity: 1;
+}
+
+.history-panel {
+    display: none;
+    position: fixed;
+    bottom: 100px;
+    background: rgba(0,0,0,0.9);
+    border-radius: 12px;
+    padding: 15px;
+    width: 280px;
+    max-height: 200px;
+    backdrop-filter: blur(10px);
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.history-items {
+    overflow-y: auto;
+    max-height: 150px;
 }
 
 .buttons {
@@ -59,63 +89,42 @@ body {
 }
 
 button {
-    font-size: 1.2em;
-    padding: 15px;
-    background-color: var(--primary-color);
-    color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 12px;
+    padding: 20px;
+    font-size: 1.2em;
     cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-button:hover {
-    background-color: var(--button-hover);
-    transform: translateY(-2px);
+    transition: all 0.1s ease;
+    background: var(--button-bg);
+    color: white;
 }
 
 button:active {
     transform: scale(0.95);
 }
 
-button.zero {
-    grid-column: span 2;
+.num:hover { background: var(--button-hover); }
+.op { background: var(--operator-bg); }
+.op:hover { background: var(--operator-hover); }
+.eq { background: var(--operator-bg); grid-column: span 2; }
+.fn { background: #5c5c5c; }
+.sci { background: var(--sci-bg); }
+
+.scientific-buttons {
+    display: none;
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 8px;
 }
 
-button.scientific {
-    background-color: #17a2b8;
-}
-
-.history {
-    max-height: 120px;
-    overflow-y: auto;
-    margin: 10px 0;
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 0.9em;
-}
-
-.history-item {
-    padding: 5px 0;
-    border-bottom: 1px solid #eee;
-}
-
-.theme-toggle {
-    background: none !important;
-    color: var(--text-color);
-    font-size: 1.5em;
-    padding: 5px 10px !important;
+.error {
+    animation: shake 0.4s;
+    color: var(--error-color) !important;
 }
 
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
     25% { transform: translateX(5px); }
-    75% { transform: translateX(-5px); }
-}
-
-.error {
-    animation: shake 0.4s;
-    color: #dc3545 !important;
-    border-color: #dc3545 !important;
+    75% { transform: translate(-5px); }
 }

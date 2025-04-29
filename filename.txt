@@ -1,0 +1,4 @@
+This is a blast file
+EOF
+:wq!
+:wq

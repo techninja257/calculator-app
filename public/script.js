@@ -35,7 +35,6 @@ class Calculator {
         const lastChar = this.currentValue.slice(-1);
         const operators = ['+', '-', '*', '/'];
         
-        // Prevent invalid sequences.
         if (operators.includes(value) && operators.includes(lastChar)) return false;
         if (value === '.' && this.currentValue.split(/[\+\-\*\/]/).pop().includes('.')) return false;
         

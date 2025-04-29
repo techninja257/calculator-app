@@ -1,0 +1,5 @@
+This is a blast file
+EOF
+:wq!
+:wq
+Content not  to be touched

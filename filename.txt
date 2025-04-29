@@ -1,5 +1,3 @@
 This is a blast file
-EOF
-:wq!
-:wq
-Content not  to be touched
+File is in use just for test purposes
+Don't play...or you'll learn.
